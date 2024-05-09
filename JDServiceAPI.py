@@ -120,18 +120,27 @@ def getControlDevice(mac,i):
                     control_device.update({"pluginInfo":False})
                 else:
                     pcdn_list = data["pcdn_list"]
+                    if not pcdn_list:  # Check if pcdn_list is empty
+                        cache_size = "No plugin data available"
+                    else:
                     # print(pcdn_list)
-                    status = ""
+                        status = ""
                     # name = ""
-                    cache_size = ""
-                    for pcdn_st in pcdn_list:
-                        status += f'''{pcdn_st["nickname"]}({pcdn_st["status"]})   '''
-                        # name += f'''{pcdn_st["nickname"]}({pcdn_st["name"]})   '''
-                        cache_size += f'''{pcdn_st["nickname"]}({str(round(int(pcdn_st["cache_size"])/1048/1000,2))}GB)   '''
-                    extstorage_exist = data["extstorage_exist"]
-                    extstorage_enable = data["extstorage_enable"]
-                    #board = data["board"] //delete useless code
-                    control_device.update({"pluginInfo":True,"status":status,"cache_size":cache_size})
+                        cache_size = ""
+                        for pcdn_st in pcdn_list:
+                            status += f'''{pcdn_st["nickname"]}({pcdn_st["status"]})   '''
+                            try:
+                                cache_size_in_gb = round(int(pcdn_st["cache_size"]) / 1048 / 1000, 2)
+                                cache_size += f'''{pcdn_st["nickname"]}({cache_size_in_gb}GB)  '''
+                            except (KeyError, ValueError):
+                                cache_size += f'''{pcdn_st["nickname"]}(?)  '''
+                    try:
+                        pluginInfo = data  # Use try-except for JSON parsing
+                        control_device.update({"pluginInfo": pluginInfo, "status": status, "cache_size": cache_size})
+                    except Exception as e:
+                        print(f"Error parsing plugin info: {e}")
+                        control_device.update({"pluginInfo": False})
+
         elif current_value.get("msg"):
             print(current_value.get("msg"))
     else:
